@@ -1,20 +1,47 @@
 import React, { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import styled from "styled-components"
 import logo from "../Assets/logo.svg"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
+import axios from "axios"
+import {registerRoute} from "../utils/Api"
 
 function Register() {
-  const [values, setValues ] = useState({
+  const navigate = useNavigate()
+  const [values, setValues] = useState({
     username: "",
     email: "",
     password: "",
     confirmPassword: "",
   })
-  const HandleSubmit = (e) => {
+  const toastoptions = {
+    autoClose: 2000,
+    draggabl: true,
+    position: "top-right",
+    theme: "dark",
+  }
+  const  HandleSubmit = async (e) => {
     e.preventDefault()
-    HandleValidation()
+    if(HandleValidation())
+    {
+      const { password, username, email } = values;
+        const {data} = await axios.post(registerRoute, {
+          username,
+          email,
+          password,
+        });
+      if(data.status===false)
+      {
+        toast.error(data.msg, toastoptions)
+      }
+      if(data.status === true)
+      {
+        localStorage.setItem('chat-app-user',JSON.stringify(data.user))
+        navigate("/")
+      }
+      
+    }
   }
   const HandleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value })
@@ -22,15 +49,27 @@ function Register() {
   const HandleValidation = () => {
     const { password, confirmPassword, username, email } = values
     if (password !== confirmPassword) {
-      toast.error("password and confirm password doesnot match", {
-        autoClose: 2000,
-        draggabl: true,
-        position: "top-right",
-        theme: "dark",
-      })
+      toast.error("password and confirm password doesnot match", toastoptions)
+      return false;
     }
+    else if(username.length<3)
+    {
+      toast.error("Username should be more than 2 characters",toastoptions);
+      return false;
+    }
+    else if(password.length<8)
+    {
+      toast.error("Password should be more than 7 characters",toastoptions);
+      return false;
+    }
+    else if(email==="")
+    {
+      toast.error("Email is required",toastoptions);
+      return false;
+    }
+    return true;
   }
-  return (
+  return ( 
     <>
       <FormContainer>
         <form
@@ -80,7 +119,7 @@ function Register() {
           </span>
         </form>
       </FormContainer>
-      <ToastContainer/>
+      <ToastContainer />
     </>
   )
 }
