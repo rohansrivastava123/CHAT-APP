@@ -21,6 +21,11 @@ function Register() {
     position: "top-right",
     theme: "dark",
   }
+  useEffect(() => {
+    if (localStorage.getItem("chat-app-user")) {
+      navigate("/")
+    }
+  }, [])
   const  HandleSubmit = async (e) => {
     e.preventDefault()
     if(HandleValidation())
